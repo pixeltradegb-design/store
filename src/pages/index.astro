@@ -14,7 +14,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
   </head>
   <body class="min-h-screen selection:bg-white selection:text-black">
     
-    <!-- Top Banner -->
+    <!-- Top Announcement Bar -->
     <div class="bg-neutral-900 border-b border-neutral-800 text-center py-2 px-4 text-xs font-mono uppercase tracking-widest text-neutral-300">
       📦 100% Authentic • UK Next Day Dispatch • Use code <span class="text-white font-bold underline">WELCOME10</span>
     </div>
@@ -45,7 +45,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
         {products.map((item) => (
           <div class="product-card group bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:shadow-black/50">
             <div>
-              <!-- Media Container -->
+              <!-- Image & Video Media Container -->
               <div class="relative w-full aspect-square bg-neutral-950 overflow-hidden">
                 {item.badge && (
                   <span class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-black/80 backdrop-blur-md border border-neutral-700 text-[10px] font-mono font-bold uppercase tracking-widest text-rose-400 rounded-md">
@@ -57,7 +57,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
                   {item.size}
                 </span>
 
-                <!-- Default Image -->
+                <!-- Flat-lay Image -->
                 <img 
                   src={item.image} 
                   alt={item.name}
@@ -101,28 +101,27 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
               </div>
             </div>
 
-            <!-- Instant Checkout Form -->
+            <!-- Client Fetch Checkout Trigger -->
             <div class="p-5 pt-0">
-              <form action="/api/checkout" method="POST">
-                <input type="hidden" name="productId" value={item.id} />
-                <button 
-                  type="submit" 
-                  class="w-full bg-white hover:bg-neutral-200 active:scale-[0.99] text-black font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Buy Now • £{(item.price / 100).toFixed(2)}</span>
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </form>
+              <button 
+                type="button" 
+                data-product-id={item.id}
+                class="checkout-btn w-full bg-white hover:bg-neutral-200 active:scale-[0.99] text-black font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Buy Now • £{(item.price / 100).toFixed(2)}</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
             </div>
           </div>
         ))}
       </div>
     </main>
 
-    <!-- Hover Video Playback Script -->
+    <!-- Client-side Logic for Video Hover & API Fetch Checkout -->
     <script>
+      // Video hover control
       document.querySelectorAll('.product-card').forEach((card) => {
         const video = card.querySelector<HTMLVideoElement>('.product-video');
         if (video) {
@@ -134,6 +133,43 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
             video.currentTime = 0;
           });
         }
+      });
+
+      // Checkout handler
+      document.querySelectorAll('.checkout-btn').forEach((button) => {
+        button.addEventListener('click', async (e) => {
+          const btn = e.currentTarget as HTMLButtonElement;
+          const productId = btn.getAttribute('data-product-id');
+          const originalText = btn.innerHTML;
+
+          btn.disabled = true;
+          btn.innerHTML = `<span>Loading Checkout...</span>`;
+
+          try {
+            const response = await fetch('/api/checkout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ productId }),
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+              window.location.href = data.url;
+            } else {
+              alert(data.error || 'Failed to initialize checkout');
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+          } catch (err) {
+            console.error('Checkout error:', err);
+            alert('Something went wrong. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        });
       });
     </script>
   </body>
