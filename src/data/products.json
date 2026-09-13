@@ -1,0 +1,23 @@
+[
+  {
+    "id": "prod_001",
+    "name": "Classic Streetwear Hoodie",
+    "price": 55.00,
+    "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80",
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "prod_002",
+    "name": "Retro High-Top Trainers",
+    "price": 95.00,
+    "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&auto=format&fit=crop&q=80",
+    "sizes": ["UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
+  },
+  {
+    "id": "prod_003",
+    "name": "Heavyweight Boxy Tee",
+    "price": 28.00,
+    "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80",
+    "sizes": ["S", "M", "L", "XL"]
+  }
+]

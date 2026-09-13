@@ -1,17 +1,173 @@
 ---
-
+import products from '../data/products.json';
+import '../styles/global.css';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<!DOCTYPE html>
+<html lang="en" class="bg-neutral-950 text-neutral-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apparel & Footwear</title>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-neutral-800">
+
+  <header class="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-md px-6 py-4 flex justify-between items-center">
+    <span class="font-black text-xl tracking-wider">STORE</span>
+    <button id="open-cart-btn" class="border border-neutral-700 hover:border-neutral-400 px-4 py-1.5 rounded-full text-sm font-medium transition">
+      Cart (<span id="cart-count">0</span>)
+    </button>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 flex-1 w-full">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.map((item) => (
+        <div class="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/40 flex flex-col">
+          <div class="aspect-square bg-neutral-900 overflow-hidden">
+            <img src={item.image} alt={item.name} class="w-full h-full object-cover hover:scale-105 transition duration-300" />
+          </div>
+          <div class="p-4 flex flex-col flex-1">
+            <div class="flex justify-between items-baseline mb-3">
+              <h2 class="font-semibold text-base">{item.name}</h2>
+              <span class="font-mono text-neutral-300 font-medium">£{item.price.toFixed(2)}</span>
+            </div>
+
+            <label class="text-xs text-neutral-400 mb-1 font-medium">Size</label>
+            <select id={`size-${item.id}`} class="bg-neutral-900 border border-neutral-700 text-sm rounded-lg p-2 mb-4 focus:ring-1 focus:ring-white outline-none">
+              {item.sizes.map((s) => (
+                <option value={s}>{s}</option>
+              ))}
+            </select>
+
+            <button 
+              data-product={JSON.stringify(item)}
+              class="add-to-cart-btn mt-auto w-full bg-white text-black hover:bg-neutral-200 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer"
+            >
+              Add to Basket
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </main>
+
+  <!-- Slide-out Cart Drawer -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex justify-end">
+    <div class="w-full max-w-md bg-neutral-900 h-full p-6 flex flex-col border-l border-neutral-800 shadow-2xl">
+      <div class="flex justify-between items-center pb-4 border-b border-neutral-800">
+        <h2 class="font-bold text-lg">Basket</h2>
+        <button id="close-cart-btn" class="text-neutral-400 hover:text-white text-2xl leading-none cursor-pointer">&times;</button>
+      </div>
+
+      <div id="cart-items" class="flex-1 overflow-y-auto py-4 space-y-4"></div>
+
+      <div class="border-t border-neutral-800 pt-4">
+        <div class="flex justify-between text-base font-semibold mb-4">
+          <span>Subtotal</span>
+          <span id="cart-total" class="font-mono">£0.00</span>
+        </div>
+        <button id="checkout-btn" class="w-full bg-white text-black hover:bg-neutral-200 py-3 rounded-lg font-bold transition cursor-pointer">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getCart, addToCart, removeFromCart } from '../scripts/cart.js';
+
+    const cartDrawer = document.getElementById('cart-drawer');
+    const openCartBtn = document.getElementById('open-cart-btn');
+    const closeCartBtn = document.getElementById('close-cart-btn');
+    const cartItemsContainer = document.getElementById('cart-items');
+    const cartTotalEl = document.getElementById('cart-total');
+    const cartCountEl = document.getElementById('cart-count');
+    const checkoutBtn = document.getElementById('checkout-btn');
+
+    const toggleCart = () => cartDrawer?.classList.toggle('hidden');
+    openCartBtn?.addEventListener('click', toggleCart);
+    closeCartBtn?.addEventListener('click', toggleCart);
+
+    function updateCartUI() {
+      const cart = getCart();
+      const totalCount = cart.reduce((sum: number, i: any) => sum + i.quantity, 0);
+      if (cartCountEl) cartCountEl.innerText = totalCount.toString();
+
+      if (!cartItemsContainer || !cartTotalEl) return;
+      cartItemsContainer.innerHTML = '';
+
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p class="text-neutral-500 text-sm text-center mt-12">Your basket is currently empty.</p>';
+        cartTotalEl.innerText = '£0.00';
+        return;
+      }
+
+      let subtotal = 0;
+      cart.forEach((item: any) => {
+        subtotal += item.price * item.quantity;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center text-sm border-b border-neutral-800 pb-3';
+        row.innerHTML = `
+          <div>
+            <div class="font-medium">${item.name}</div>
+            <div class="text-neutral-400 text-xs">Size: ${item.size} &times; ${item.quantity}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-mono">£${(item.price * item.quantity).toFixed(2)}</span>
+            <button data-id="${item.id}" data-size="${item.size}" class="remove-btn text-neutral-500 hover:text-red-400 text-lg cursor-pointer">&times;</button>
+          </div>
+        `;
+        cartItemsContainer.appendChild(row);
+      });
+
+      cartTotalEl.innerText = `£${subtotal.toFixed(2)}`;
+
+      document.querySelectorAll('.remove-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const target = e.target as HTMLElement;
+          removeFromCart(target.dataset.id, target.dataset.size);
+        });
+      });
+    }
+
+    document.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const product = JSON.parse(target.dataset.product || '{}');
+        const sizeSelect = document.getElementById(`size-${product.id}`) as HTMLSelectElement;
+        const selectedSize = sizeSelect ? sizeSelect.value : 'Standard';
+
+        addToCart(product, selectedSize);
+        if (cartDrawer?.classList.contains('hidden')) toggleCart();
+      });
+    });
+
+    checkoutBtn?.addEventListener('click', async () => {
+      const cart = getCart();
+      if (cart.length === 0) return;
+
+      checkoutBtn.innerText = 'Redirecting...';
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Error: ' + data.error);
+          checkoutBtn.innerText = 'Proceed to Checkout';
+        }
+      } catch {
+        alert('Could not initiate checkout.');
+        checkoutBtn.innerText = 'Proceed to Checkout';
+      }
+    });
+
+    window.addEventListener('cart-updated', updateCartUI);
+    updateCartUI();
+  </script>
+</body>
 </html>
