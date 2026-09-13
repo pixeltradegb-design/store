@@ -2,57 +2,46 @@ import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import products from '../../data/products.json';
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
 export const POST: APIRoute = async ({ request }) => {
-  const secretKey = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  const data = await request.formData();
+  const productId = data.get('productId')?.toString();
 
-  if (!secretKey) {
-    return new Response(JSON.stringify({ error: 'Missing STRIPE_SECRET_KEY' }), { status: 500 });
+  const product = products.find((p) => p.id === productId);
+  if (!product) {
+    return new Response('Product not found', { status: 404 });
   }
 
-  const stripe = new Stripe(secretKey);
+  const siteUrl = process.env.PUBLIC_SITE_URL || 'https://pixeltradegb.co.uk';
+  const fullImageUrl = product.image.startsWith('http')
+    ? product.image
+    : `${siteUrl}${product.image}`;
 
-  try {
-    const body = await request.json();
-    const cartItems = body.items;
-
-    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-      return new Response(JSON.stringify({ error: 'Cart is empty' }), { status: 400 });
-    }
-
-    const line_items = cartItems.map((cartItem: any) => {
-      const product = products.find((p) => p.id === cartItem.id);
-      if (!product) throw new Error(`Product not found: ${cartItem.id}`);
-
-      const hasValidImage = product.image && product.image.startsWith('https://');
-
-      return {
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
         price_data: {
-          currency: 'gbp',
+          currency: product.currency,
           product_data: {
-            name: `${product.name} (${cartItem.size})`,
-            ...(hasValidImage ? { images: [product.image] } : {}),
+            name: `${product.name} (${product.size})`,
+            description: `${product.condition} - ${product.description}`,
+            images: [fullImageUrl],
           },
-          unit_amount: Math.round(Number(product.price) * 100),
+          unit_amount: product.price,
         },
-        quantity: Number(cartItem.quantity) || 1,
-      };
-    });
-
-    const siteUrl = import.meta.env.PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || 'http://localhost:4321';
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items,
-      mode: 'payment',
-      shipping_address_collection: {
-        allowed_countries: ['GB'],
+        quantity: 1,
       },
-      success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/`,
-    });
+    ],
+    mode: 'payment',
+    allow_promotion_codes: true, // Enables customer discount code box
+    shipping_address_collection: {
+      allowed_countries: ['GB'],
+    },
+    success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/`,
+  });
 
-    return new Response(JSON.stringify({ url: session.url }), { status: 200 });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
+  return Response.redirect(session.url as string, 303);
 };
