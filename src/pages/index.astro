@@ -101,7 +101,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
               </div>
             </div>
 
-            <!-- Client Fetch Checkout Trigger -->
+            <!-- Instant Checkout Button -->
             <div class="p-5 pt-0">
               <button 
                 type="button" 
@@ -117,9 +117,47 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
           </div>
         ))}
       </div>
+
+      <!-- Newsletter / Drop Notification Section -->
+      <section class="mt-20 max-w-2xl mx-auto border border-neutral-800 bg-neutral-900/60 backdrop-blur-md rounded-3xl p-8 sm:p-10 text-center relative overflow-hidden">
+        <div class="relative z-10">
+          <span class="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-mono font-bold uppercase tracking-widest">
+            Early Access & Restocks
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white mt-4">
+            Never Miss A Drop
+          </h2>
+          <p class="text-neutral-400 text-xs sm:text-sm mt-2 max-w-md mx-auto leading-relaxed">
+            Join the archive priority list for direct notification on 1-of-1 pieces, deadstock sneaker pairs, and an instant 10% discount code.
+          </p>
+
+          <form id="newsletter-form" class="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input 
+              type="email" 
+              name="email"
+              required
+              placeholder="Enter your email" 
+              class="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white text-xs font-mono placeholder:text-neutral-600 focus:outline-none focus:border-rose-500 transition"
+            />
+            <button 
+              type="submit" 
+              id="newsletter-submit"
+              class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition shrink-0 cursor-pointer"
+            >
+              Get Code
+            </button>
+          </form>
+
+          <div id="newsletter-msg" class="hidden text-xs font-mono mt-4"></div>
+        </div>
+      </section>
     </main>
 
-    <!-- Client-side Logic for Video Hover & API Fetch Checkout -->
+    <footer class="border-t border-neutral-800/80 py-8 text-center text-neutral-500 text-xs font-mono">
+      © 2026 {storeName}. All rights reserved.
+    </footer>
+
+    <!-- Interactive Scripts -->
     <script>
       // Video hover control
       document.querySelectorAll('.product-card').forEach((card) => {
@@ -148,9 +186,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
           try {
             const response = await fetch('/api/checkout', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ productId }),
             });
 
@@ -171,6 +207,49 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
           }
         });
       });
+
+      // Newsletter handler
+      const nlForm = document.getElementById('newsletter-form') as HTMLFormElement;
+      const nlMsg = document.getElementById('newsletter-msg') as HTMLDivElement;
+      const nlBtn = document.getElementById('newsletter-submit') as HTMLButtonElement;
+
+      if (nlForm) {
+        nlForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const emailInput = nlForm.querySelector<HTMLInputElement>('input[name="email"]');
+          if (!emailInput) return;
+
+          nlBtn.disabled = true;
+          nlBtn.textContent = '...';
+
+          try {
+            const res = await fetch('/api/newsletter', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: emailInput.value }),
+            });
+
+            const result = await res.json();
+            nlMsg.classList.remove('hidden');
+
+            if (res.ok) {
+              nlMsg.className = 'text-xs font-mono mt-4 text-emerald-400';
+              nlMsg.innerHTML = `${result.message} <span class="underline font-bold">${result.code}</span>`;
+              nlForm.reset();
+            } else {
+              nlMsg.className = 'text-xs font-mono mt-4 text-rose-400';
+              nlMsg.textContent = result.error || 'Subscription failed.';
+            }
+          } catch {
+            nlMsg.classList.remove('hidden');
+            nlMsg.className = 'text-xs font-mono mt-4 text-rose-400';
+            nlMsg.textContent = 'Network error. Please try again.';
+          } finally {
+            nlBtn.disabled = false;
+            nlBtn.textContent = 'Get Code';
+          }
+        });
+      }
     </script>
   </body>
 </html>
