@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "_render": {
+      "runtime": "nodejs20.x"
+    },
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
