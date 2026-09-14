@@ -1,41 +1,28 @@
 [
   {
     "id": "prod_nike_react",
-    "name": "Nike Trail 4  'React'",
+    "name": "Nike Trail 4 'React'",
     "category": "Footwear",
     "size": "UK 5.5",
-    "condition": "Used",
+    "condition": "Used - Excellent",
     "price": 3500,
     "currency": "gbp",
-    "badge": "Reacts",
-    "image": "/products/Nike_React_detail.jpg",
-    "video": "/products/Nik_React.mp4",
-    "description": "Classic black leather low-top. Verified deadstock pair with factory laces and undamaged original box."
+    "badge": "REACT FOAM",
+    "image": "/products/Nike_React_detail.JPG",
+    "video": "/products/Nike_React.mp4",
+    "description": "Nike Pegasus Trail 4 runner in black/grey. Responsive React foam midsole, durable lug outsole, and breathable mesh upper."
   },
   {
     "id": "prod_nike_trail",
-    "name": "nike trail 4 ",
+    "name": "Nike Trail 4",
     "category": "Footwear",
-    "size": "UK 5.5" ,
-    "condition": "Used",
+    "size": "UK 5.5",
+    "condition": "Used - Excellent",
     "price": 3000,
     "currency": "gbp",
     "badge": "1 OF 1 FIND",
-    "image": "/products/Trail_4_detail.jpg",
+    "image": "/products/Trail_4_detail.JPG",
     "video": "/products/Nike_Trail_4.mp4",
-    "description": "Authentic washed duck canvas with corduroy trim collar and blanket lining. Heavyweight drape with light natural distress."
-  },
-  {
-    "id": "prod_stussy_tee",
-    "name": "Stüssy 8-Ball Pigment Dyed Tee",
-    "category": "T-Shirts",
-    "size": "Medium",
-    "condition": "Brand New with Tags",
-    "price": 4500,
-    "currency": "gbp",
-    "badge": "RESTOCK",
-    "image": "/products/stussy-tee.jpg",
-    "video": "/products/stussy-clip.mp4",
-    "description": "Heavyweight 100% cotton tee in washed black featuring iconic rear 8-ball graphic and front chest script."
+    "description": "All-terrain lightweight trail runner. Clean uppers with firm traction rubber tread."
   }
 ]
