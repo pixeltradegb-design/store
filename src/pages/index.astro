@@ -58,14 +58,14 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
                   {item.size}
                 </span>
 
-                <!-- Static Flat-lay Image -->
+                <!-- Static Image -->
                 <img 
                   src={item.image} 
                   alt={item.name}
                   class="product-img absolute inset-0 w-full h-full object-cover transition-opacity duration-300 z-10 group-hover:opacity-0"
                 />
 
-                <!-- Dynamic Video Spin / On-Foot Clip -->
+                <!-- Dynamic Video with iOS/Android Inline Attributes -->
                 {item.video && (
                   <video
                     src={item.video}
@@ -73,6 +73,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
                     muted
                     loop
                     playsinline
+                    webkit-playsinline="true"
                     preload="metadata"
                     class="product-video absolute inset-0 w-full h-full object-cover z-0"
                   />
@@ -102,7 +103,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
               </div>
             </div>
 
-            <!-- Instant Checkout Trigger -->
+            <!-- Instant Checkout Button -->
             <div class="p-5 pt-0">
               <button 
                 type="button" 
@@ -119,7 +120,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
         ))}
       </div>
 
-      <!-- Drop Notification / Newsletter -->
+      <!-- Newsletter Section -->
       <section class="mt-20 max-w-2xl mx-auto border border-neutral-800 bg-neutral-900/60 backdrop-blur-md rounded-3xl p-8 sm:p-10 text-center relative overflow-hidden">
         <div class="relative z-10">
           <span class="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-mono font-bold uppercase tracking-widest">
@@ -158,23 +159,53 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
       © 2026 {storeName}. All rights reserved.
     </footer>
 
-    <!-- Interactive Scripts -->
+    <!-- Video & Interaction Script -->
     <script>
-      // Video hover control
-      document.querySelectorAll('.product-card').forEach((card) => {
-        const video = card.querySelector<HTMLVideoElement>('.product-video');
-        if (video) {
-          card.addEventListener('mouseenter', () => {
-            video.play().catch(() => {});
-          });
-          card.addEventListener('mouseleave', () => {
-            video.pause();
-            video.currentTime = 0;
-          });
-        }
-      });
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const cards = document.querySelectorAll('.product-card');
 
-      // Checkout handler
+      if (isTouchDevice) {
+        // Mobile: Scroll-based Autoplay
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              const card = entry.target;
+              const video = card.querySelector<HTMLVideoElement>('.product-video');
+              const img = card.querySelector<HTMLImageElement>('.product-img');
+
+              if (!video) return;
+
+              if (entry.isIntersecting) {
+                if (img) img.classList.add('opacity-0');
+                video.play().catch(() => {});
+              } else {
+                if (img) img.classList.remove('opacity-0');
+                video.pause();
+                video.currentTime = 0;
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+
+        cards.forEach((card) => observer.observe(card));
+      } else {
+        // Desktop: Hover Playback
+        cards.forEach((card) => {
+          const video = card.querySelector<HTMLVideoElement>('.product-video');
+          if (video) {
+            card.addEventListener('mouseenter', () => {
+              video.play().catch(() => {});
+            });
+            card.addEventListener('mouseleave', () => {
+              video.pause();
+              video.currentTime = 0;
+            });
+          }
+        });
+      }
+
+      // Checkout Handler
       document.querySelectorAll('.checkout-btn').forEach((button) => {
         button.addEventListener('click', async (e) => {
           const btn = e.currentTarget as HTMLButtonElement;
@@ -209,7 +240,7 @@ const storeTagline = "Curated Footwear, Deadstock & Vintage Streetwear";
         });
       });
 
-      // Newsletter handler
+      // Newsletter Handler
       const nlForm = document.getElementById('newsletter-form') as HTMLFormElement;
       const nlMsg = document.getElementById('newsletter-msg') as HTMLDivElement;
       const nlBtn = document.getElementById('newsletter-submit') as HTMLButtonElement;
